@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Certificate</title>
+  <style>
+    body {
+      font-family: "Times New Roman", serif;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-box {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-box input, .form-box select {
+      padding: 8px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    .form-box button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .certificate {
+      width: 800px;
+      height: 600px;
+      border: 10px solid #2e2e2e;
+      padding: 40px 30px 30px 30px;
+      background: #fff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .certificate-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      z-index: 1;
+    }
+    .certificate-header img {
+      max-height: 80px;
+      width: auto;
+    }
+    .certificate-header h1 {
+      font-size: 28px;
+      text-transform: uppercase;
+      margin: 0;
+      color: darkgoldenrod;
+    }
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 500px;
+      opacity: 0.15; /* Increased opacity */
+      transform: translate(-50%, -50%);
+      z-index: 0;
+    }
+    .certificate h1, .certificate h2, .certificate p {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    .certificate h1 {
+      font-size: 36px;
+      margin: 10px 0 20px 0;
+      text-transform: uppercase;
+    }
+    .certificate h2 {
+      font-size: 26px;
+      margin: 20px 0;
+    }
+    .certificate p {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    @media (max-width: 850px) {
+      .certificate {
+        transform: scale(0.8);
+        transform-origin: top left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Input Form -->
+  <div class="form-box">
+    <select id="titleSelect">
+      <option value="">Select Title</option>
+      <option value="Shri.">Shri</option>
+      <option value="Smt.">Smt</option>
+    </select>
+    <input type="text" id="nameInput" placeholder="Enter Full Name">
+    <input type="text" id="rollInput" placeholder="Enter Roll Number">
+    <input type="number" id="regNoInput" placeholder="Enter Reg No (e.g. 1)">
+    <input type="date" id="dateInput">
+    <br>
+    <button onclick="downloadPDF()">Download as PDF</button>
+  </div>
+
+  <!-- Certificate -->
+  <div class="certificate" id="certificate">
+    <!-- University Logo and Name Header -->
+    <div class="certificate-header">
+      <img src="aditya logo.jpg" alt="Aditya University Logo">
+      <h1>Aditya University</h1>
+    </div>
+
+    <!-- Watermark in background -->
+    <img src="leo.jpg" alt="Watermark Logo" class="watermark">
+
+    <!-- Certificate Content -->
+    <h1>Certificate of Registration</h1>
+    <p style="font-style: italic;">This is to certify that</p>
+    <h2 id="studentName">[Full Name]</h2>
+    <p>Roll No: <strong id="studentRoll">[Roll Number]</strong></p>
+    <p>Registered Number: <strong id="regNumber">LEO -2025001</strong></p>
+    <p>has been successfully registered to LEO CLUB on <span id="regDate">[Date]</span>.</p>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // Update Name with Title
+    function updateCertificateName() {
+      const title = document.getElementById("titleSelect").value;
+      const name = document.getElementById("nameInput").value;
+      const displayName = (title ? title + " " : "") + (name || "[Full Name]");
+      document.getElementById("studentName").innerText = displayName;
+    }
+
+    // Format Reg No
+    function updateRegNumber() {
+      const regNo = parseInt(document.getElementById("regNoInput").value);
+      if (!isNaN(regNo) && regNo > 0) {
+        const padded = String(regNo).padStart(3, '0');
+        document.getElementById("regNumber").innerText = "LEO-" + padded;
+      } else {
+        document.getElementById("regNumber").innerText = "LEO-2025001";
+      }
+    }
+
+    document.getElementById("nameInput").addEventListener("input", updateCertificateName);
+    document.getElementById("titleSelect").addEventListener("change", updateCertificateName);
+    document.getElementById("regNoInput").addEventListener("input", updateRegNumber);
+
+    document.getElementById("rollInput").addEventListener("input", function () {
+      document.getElementById("studentRoll").innerText = this.value || "[Roll Number]";
+    });
+
+    document.getElementById("dateInput").addEventListener("input", function () {
+      const date = new Date(this.value);
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formatted = isNaN(date) ? "[Date]" : date.toLocaleDateString('en-US', options);
+      document.getElementById("regDate").innerText = formatted;
+    });
+
+    // Download as PDF
+    async function downloadPDF() {
+      const name = document.getElementById("nameInput").value.trim();
+      const roll = document.getElementById("rollInput").value.trim();
+      const date = document.getElementById("dateInput").value.trim();
+      const title = document.getElementById("titleSelect").value;
+      const regNo = document.getElementById("regNoInput").value.trim();
+
+      if (!title || !name || !roll || !date || !regNo) {
+        alert("Please fill in all fields and select a title before downloading.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const certificate = document.getElementById("certificate");
+
+      const canvas = await html2canvas(certificate, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("l", "pt", [certificate.offsetWidth, certificate.offsetHeight]);
+      pdf.addImage(imgData, "PNG", 0, 0, certificate.offsetWidth, certificate.offsetHeight);
+
+      pdf.save("Registration_Certificate.pdf");
+    }
+  </script>
+
+</body>
+</html>
