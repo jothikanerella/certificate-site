@@ -11,8 +11,8 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
       margin: 0;
+      padding: 20px;
     }
     .form-box {
       margin-bottom: 20px;
@@ -28,6 +28,10 @@
       font-size: 16px;
       margin-top: 10px;
       cursor: pointer;
+      background: darkgoldenrod;
+      color: white;
+      border: none;
+      border-radius: 5px;
     }
     .certificate {
       width: 800px;
@@ -66,7 +70,7 @@
       top: 50%;
       left: 50%;
       width: 500px;
-      opacity: 0.15; /* Increased opacity */
+      opacity: 0.12;
       transform: translate(-50%, -50%);
       z-index: 0;
     }
@@ -88,12 +92,6 @@
       font-size: 20px;
       margin: 10px 0;
     }
-    @media (max-width: 850px) {
-      .certificate {
-        transform: scale(0.8);
-        transform-origin: top left;
-      }
-    }
   </style>
 </head>
 <body>
@@ -110,26 +108,22 @@
     <input type="number" id="regNoInput" placeholder="Enter Reg No (e.g. 1)">
     <input type="date" id="dateInput">
     <br>
-    <button onclick="downloadPDF()">Download as PDF</button>
+    <button onclick="downloadPDF()">Download Certificate</button>
   </div>
 
-  <!-- Certificate -->
+  <!-- Certificate Preview -->
   <div class="certificate" id="certificate">
-    <!-- University Logo and Name Header -->
     <div class="certificate-header">
       <img src="aditya logo.jpg" alt="Aditya University Logo">
       <h1>Aditya University</h1>
     </div>
-
-    <!-- Watermark in background -->
     <img src="leo.jpg" alt="Watermark Logo" class="watermark">
 
-    <!-- Certificate Content -->
     <h1>Certificate of Registration</h1>
     <p style="font-style: italic;">This is to certify that</p>
     <h2 id="studentName">[Full Name]</h2>
     <p>Roll No: <strong id="studentRoll">[Roll Number]</strong></p>
-    <p>Registered Number: <strong id="regNumber">LEO -2025001</strong></p>
+    <p>Registered Number: <strong id="regNumber">LEO-2025001</strong></p>
     <p>has been successfully registered to LEO CLUB on <span id="regDate">[Date]</span>.</p>
   </div>
 
@@ -137,50 +131,43 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    // Update Name with Title
-    function updateCertificateName() {
+    // Update dynamic fields
+    function updateCertificate() {
       const title = document.getElementById("titleSelect").value;
       const name = document.getElementById("nameInput").value;
-      const displayName = (title ? title + " " : "") + (name || "[Full Name]");
-      document.getElementById("studentName").innerText = displayName;
-    }
+      document.getElementById("studentName").innerText = (title ? title + " " : "") + (name || "[Full Name]");
 
-    // Format Reg No
-    function updateRegNumber() {
+      const roll = document.getElementById("rollInput").value;
+      document.getElementById("studentRoll").innerText = roll || "[Roll Number]";
+
       const regNo = parseInt(document.getElementById("regNoInput").value);
       if (!isNaN(regNo) && regNo > 0) {
         const padded = String(regNo).padStart(3, '0');
-        document.getElementById("regNumber").innerText = "LEO-" + padded;
+        document.getElementById("regNumber").innerText = "LEO-2025" + padded;
       } else {
         document.getElementById("regNumber").innerText = "LEO-2025001";
       }
+
+      const date = new Date(document.getElementById("dateInput").value);
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById("regDate").innerText = isNaN(date) ? "[Date]" : date.toLocaleDateString('en-US', options);
     }
 
-    document.getElementById("nameInput").addEventListener("input", updateCertificateName);
-    document.getElementById("titleSelect").addEventListener("change", updateCertificateName);
-    document.getElementById("regNoInput").addEventListener("input", updateRegNumber);
-
-    document.getElementById("rollInput").addEventListener("input", function () {
-      document.getElementById("studentRoll").innerText = this.value || "[Roll Number]";
-    });
-
-    document.getElementById("dateInput").addEventListener("input", function () {
-      const date = new Date(this.value);
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      const formatted = isNaN(date) ? "[Date]" : date.toLocaleDateString('en-US', options);
-      document.getElementById("regDate").innerText = formatted;
+    // Event listeners
+    document.querySelectorAll("input, select").forEach(el => {
+      el.addEventListener("input", updateCertificate);
     });
 
     // Download as PDF
     async function downloadPDF() {
       const name = document.getElementById("nameInput").value.trim();
       const roll = document.getElementById("rollInput").value.trim();
+      const regNo = document.getElementById("regNoInput").value.trim();
       const date = document.getElementById("dateInput").value.trim();
       const title = document.getElementById("titleSelect").value;
-      const regNo = document.getElementById("regNoInput").value.trim();
 
       if (!title || !name || !roll || !date || !regNo) {
-        alert("Please fill in all fields and select a title before downloading.");
+        alert("⚠️ Please fill in all fields!");
         return;
       }
 
@@ -193,7 +180,7 @@
       const pdf = new jsPDF("l", "pt", [certificate.offsetWidth, certificate.offsetHeight]);
       pdf.addImage(imgData, "PNG", 0, 0, certificate.offsetWidth, certificate.offsetHeight);
 
-      pdf.save("Registration_Certificate.pdf");
+      pdf.save("certificate_" + roll + ".pdf");
     }
   </script>
 
